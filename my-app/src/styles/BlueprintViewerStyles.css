@@ -97,3 +97,25 @@
   transition: background-color 0.3s;
 }
 
+.create {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #1fc2df;
+  color: black;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.delete {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #ff0000;
+  color: white;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+

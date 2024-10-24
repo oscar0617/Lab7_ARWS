@@ -76,6 +76,16 @@ public class BlueprintsServices {
         try {
             return bpp.updateBlueprint(author, name, blueprint);
         } catch (Exception e) {
+            System.out.println(e);
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+    }
+
+    public void deleteBlueprint(String author, String name) throws BlueprintNotFoundException{
+        try {
+            bpp.deleteBlueprint(author, name);
+        } catch (Exception e) {
+            System.out.println(e);
             throw new UnsupportedOperationException("Not supported yet.");
         }
     }

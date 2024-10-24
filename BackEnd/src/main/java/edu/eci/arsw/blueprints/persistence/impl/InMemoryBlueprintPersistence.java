@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import edu.eci.arsw.blueprints.model.Blueprint;
-import edu.eci.arsw.blueprints.model.Point;
 import edu.eci.arsw.blueprints.persistence.BlueprintNotFoundException;
 import edu.eci.arsw.blueprints.persistence.BlueprintPersistenceException;
 import edu.eci.arsw.blueprints.persistence.BlueprintsPersistence;
@@ -24,19 +23,6 @@ import edu.eci.arsw.blueprints.persistence.BlueprintsPersistence;
 public class InMemoryBlueprintPersistence implements BlueprintsPersistence {
     private final ConcurrentHashMap<String, Blueprint> blueprints = new ConcurrentHashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-
-    public InMemoryBlueprintPersistence() {
-        // load stub data
-        Point[] pts = new Point[]{new Point(140, 140), new Point(115, 115)};
-        Point[] pts1 = new Point[]{new Point(14, 180), new Point(115, 15)};
-        Point[] pts2 = new Point[]{new Point(100, 140), new Point(50, 115)};
-        Blueprint bp = new Blueprint("Oscar", "plano_1", pts);
-        Blueprint bp1 = new Blueprint("Camilo", "plano_2", pts1);
-        Blueprint bp2 = new Blueprint("Camilo", "plano_3", pts2);
-        blueprints.put(String.valueOf(new Tuple<>(bp.getAuthor(), bp.getName())), bp);
-        blueprints.put(String.valueOf(new Tuple<>(bp1.getAuthor(), bp1.getName())), bp1);
-        blueprints.put(String.valueOf(new Tuple<>(bp2.getAuthor(), bp2.getName())), bp2);
-    }
 
     @Override
     public void saveBlueprint(Blueprint bp) throws BlueprintPersistenceException {
@@ -120,4 +106,15 @@ public class InMemoryBlueprintPersistence implements BlueprintsPersistence {
     private String getKey(String author, String name) {
         return author + ":" + name;
     }
+
+    @Override
+    public void deleteBlueprint(String author, String bprintname) throws BlueprintNotFoundException {
+        String key = getKey(author, bprintname);  // Usa el método getKey para obtener la clave correcta.
+        if (!blueprints.containsKey(key)) {
+            throw new BlueprintNotFoundException("The blueprint does not exist: " + author + " - " + bprintname);
+        }
+        blueprints.remove(key); 
+    }
+
+
 }

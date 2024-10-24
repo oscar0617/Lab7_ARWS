@@ -20,14 +20,13 @@ import edu.eci.arsw.blueprints.services.BlueprintsServices;
  */
 @RestController
 @RequestMapping(value = "/blueprints")
-@CrossOrigin(origins = "http://localhost:3000") // Cambia al origen permitido
-
+@CrossOrigin(origins = "http://localhost:3000") 
 public class BlueprintAPIController {
 
     @Autowired
     BlueprintsServices bps;
 
-    @GetMapping("/{author}/{bpname}")
+    @GetMapping("/{author}/{bpname}") //Bien
     public ResponseEntity<?> getBlueprint(@PathVariable("author") String author,
             @PathVariable("bpname") String bpname) {
         try {
@@ -37,8 +36,8 @@ public class BlueprintAPIController {
         }
 
     }
-
-    @GetMapping("/{author}")
+ 
+    @GetMapping("/{author}") // Bien
     public ResponseEntity<?> getBlueprintsByAuthor(@PathVariable("author") String author) {
         try {
             System.out.println(author);
@@ -49,7 +48,7 @@ public class BlueprintAPIController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllBlueprints() {
+    public ResponseEntity<?> getAllBlueprints() { //Bien
         try {
             return new ResponseEntity<>(bps.getAllBlueprints(), HttpStatus.OK);
         } catch (Exception ex) {
@@ -57,10 +56,9 @@ public class BlueprintAPIController {
         }
     }
 
-    @PostMapping
-    public ResponseEntity<?> addNewBlueprint(@RequestBody Blueprint bp) {
+    @PostMapping 
+    public ResponseEntity<?> addNewBlueprint(@RequestBody Blueprint bp) { //Bien
         try {
-            System.out.println(bp);
             bps.addNewBlueprint(bp);
             return new ResponseEntity<>(bp, HttpStatus.CREATED);
         } catch (Exception ex) {
@@ -68,14 +66,26 @@ public class BlueprintAPIController {
         }
     }
 
-    @PutMapping("/{author}/{bpname}")
-    public ResponseEntity<?> updateBlueprint(@PathVariable("author") String author,
+    @PutMapping("/{author}/{bpname}") //Bien
+    public ResponseEntity<?> updateBlueprint(@PathVariable("author") String author, 
             @PathVariable("bpname") String bpname, @RequestBody Blueprint bp) {
         try {
-
             bps.updateBlueprint(author, bpname, bp);
             return new ResponseEntity<>(bp, HttpStatus.CREATED);
         } catch (Exception ex) {
+            System.out.println(ex);
+            return new ResponseEntity<>("Error bla bla bla", HttpStatus.FORBIDDEN);
+        }
+    }
+
+    @DeleteMapping("/{author}/{bpname}")
+    public ResponseEntity<?> deleteBlueprint(@PathVariable("author") String author, 
+            @PathVariable("bpname") String bpname) {
+        try {
+            bps.deleteBlueprint(author, bpname);
+            return new ResponseEntity<>(null, HttpStatus.OK);
+        } catch (Exception ex) {
+            System.out.println(ex);
             return new ResponseEntity<>("Error bla bla bla", HttpStatus.FORBIDDEN);
         }
     }

@@ -70,7 +70,7 @@ const drawBlueprint = (blueprint, canvasRef) => {
   });
 };
 
-// Función para manejar los clics del usuario en el canvas interactivo
+// Función para manejar los clics del usuario
 const handleUserCanvasClick = (e, userCanvasRef, drawnPoints, setDrawnPoints, drawUserPoints, selectedBlueprint) => {
   if (!selectedBlueprint) {
     alert('Debes seleccionar un blueprint');
@@ -93,50 +93,108 @@ const handleUserCanvasClick = (e, userCanvasRef, drawnPoints, setDrawnPoints, dr
 };
 
 // Función para actualizar y guardar el blueprint
-const saveUpdateBluePrint = async (e, drawnPoints, selectedBlueprint, author) => {
-  if (!selectedBlueprint) {
-    alert('Debes seleccionar un blueprint');
+const saveUpdateBluePrint = async (e, drawnPoints, selectedBlueprint, newAuthor, newBlueprintName) => {
+  if(!selectedBlueprint && newAuthor && newBlueprintName){
+    const newBlueprint = {
+      name: newBlueprintName,
+      points: [],
+      author: newAuthor
+    };
+    const url = `http://localhost:8080/blueprints`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newBlueprint) 
+      });
+      if (response.ok) {
+        const data = await response.json();
+        alert('Blueprint creado exitosamente.');
+      } else {
+        alert('Error al crear el blueprint.');
+      }
+    } catch (error) {
+      console.error('Error al crear el blueprint:', error);
+      alert('Ocurrió un error al intentar crear el blueprint.');
+    }
+  }else if(!selectedBlueprint && !newAuthor && !newBlueprintName){
+    alert("Debe tener un blueprint creado o seleccionado para actualizar o guardar");
+  }else{
+    const updatedBlueprint = {
+      author: selectedBlueprint.author, 
+      points: drawnPoints,
+      name: selectedBlueprint.name
+    };
+  
+    const url = `http://localhost:8080/blueprints/${selectedBlueprint.author}/${selectedBlueprint.name}`;
+  
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedBlueprint) 
+      });
+      if (response.ok) {
+        const data = await response.json();
+        alert('Blueprint actualizado exitosamente.');
+      } else {
+        alert('Error al actualizar el blueprint.');
+      }
+    } catch (error) {
+      console.error('Error al actualizar el blueprint:', error);
+      alert('Ocurrió un error al intentar actualizar el blueprint.');
+    }
+  }
+  
+  
+};
+
+// Función para crear un nuevo Blueprint
+const createNewBlueprint = async (e, setSelectedBlueprint, setDrawnPoints, userCanvasRef) => {
+  limpiarCanvas(userCanvasRef);
+  
+  const newAuthor = prompt("Ingrese el autor del nuevo blueprint:")
+  const newBlueprintName = prompt("Ingrese el nombre del nuevo blueprint:");
+  
+  await saveUpdateBluePrint(null, [], null, newAuthor, newBlueprintName);
+};
+
+const limpiarCanvas = async (userCanvasRef) => {
+  const canvas = userCanvasRef.current;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+};
+
+// Función para borrar un blueprint seleccionado
+const deleteBlueprint = async (e, selectedBlueprint, setDrawnPoints, userCanvasRef) => {
+  if(!selectedBlueprint){
+    alert("Debe seleccionar un blueprint para borrarlo");
     return;
   }
 
-  if (!Array.isArray(drawnPoints) || drawnPoints.length === 0) {
-    alert('No hay puntos válidos capturados.');
-    return;
-  }
-
-  const updatedBlueprint = {
-    author: author, 
-    name: selectedBlueprint.name,
-    points: drawnPoints
-  };
-
-  console.log('JSON enviado:', JSON.stringify(updatedBlueprint, null, 2)); 
-
-  const url = `http://localhost:8080/blueprints/${author}/${selectedBlueprint.name}`;
+  const url = `http://localhost:8080/blueprints/${selectedBlueprint.author}/${selectedBlueprint.name}`;
 
   try {
     const response = await fetch(url, {
-      method: 'PUT',
+      method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(updatedBlueprint) 
+      }
     });
-    if (response.ok) {
-      const data = await response.json();
-      alert('Blueprint actualizado exitosamente.');
+    if (response.status === 200) {
+      alert('Blueprint borrado exitosamente.');
     } else {
-      alert('Error al actualizar el blueprint.');
+      alert('Error al borrar el blueprint.');
     }
   } catch (error) {
-    console.error('Error al actualizar el blueprint:', error);
-    alert('Ocurrió un error al intentar actualizar el blueprint.');
+    console.error('Error al borrar el blueprint:', error);
+    alert('Ocurrió un error al intentar borrar el blueprint.');
   }
 };
-
-
-
-
 
 // Función para dibujar puntos y líneas en el canvas interactivo del usuario
 const drawUserPoints = (points, userCanvasRef) => {
@@ -262,18 +320,50 @@ function BlueprintViewer() {
           <p className="total-points">Total user points: {totalPoints}</p>
         </>
       )}
+
+      {/* Boton de create*/}
+      <button
+        className="create"
+        onClick={async (e) => {
+          await createNewBlueprint(e, setSelectedBlueprint, setDrawnPoints, userCanvasRef);
+          fetchBlueprints(author, setBlueprints, setSelectedBlueprint);
+        }}
+      >
+        Create New Blueprint
+      </button>
+
+
       {/* Boton de save/update */}
       <button
         className="save-update"
-        onClick={(e) => saveUpdateBluePrint(e, drawnPoints, selectedBlueprint, author)}
+        onClick={async (e) => {
+          await saveUpdateBluePrint(e, drawnPoints, selectedBlueprint, author); 
+          fetchBlueprints(author, setBlueprints, setSelectedBlueprint); 
+          limpiarCanvas(userCanvasRef);
+        }}
       >
         Save/Update
       </button>
+      {/* Boton de Delete*/}
+      <button
+        className="delete"
+        onClick={async (e) => {
+          await deleteBlueprint(e, selectedBlueprint, setDrawnPoints, userCanvasRef); 
+          fetchBlueprints(author, setBlueprints, setSelectedBlueprint); 
+          limpiarCanvas(userCanvasRef);
+        }}
+      >
+        Delete
+      </button>
+
 
       {/* Canvas interactivo del usuario para colocar puntos */}
       <div className="canvas-container">
-        <h2>Blueprint</h2>
-
+        <h2>Blueprints</h2>
+        <h3>{selectedBlueprint && selectedBlueprint.name && selectedBlueprint.author 
+            ? `${selectedBlueprint.name}, author: ${selectedBlueprint.author}` 
+            : "No blueprint selected"}
+        </h3>
         <canvas
           ref={userCanvasRef}
           width="400"
@@ -281,6 +371,7 @@ function BlueprintViewer() {
           className="styled-canvas"
           
           onClick={(e) => handleUserCanvasClick(e, userCanvasRef, drawnPoints, setDrawnPoints, drawUserPoints, selectedBlueprint)}
+          
         ></canvas>
       </div>
 
